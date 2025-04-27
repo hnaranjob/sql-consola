@@ -17,67 +17,101 @@ if 'resultados_guardados' not in st.session_state:
 # Título
 st.title("Mini Consola SQL en Streamlit")
 
-# Selección de la semilla para generar datos replicables
-semilla = st.number_input("Elige una semilla para replicar los datos:", min_value=1, max_value=10000, value=1234)
+# Descripción inicial
+st.write("""
+    Bienvenido a la **Mini Consola SQL**. Con esta herramienta puedes:
+    
+    - **Generar datos falsos** sobre clientes, empresas y consumos eléctricos. Puedes elegir el número de clientes y empresas y realizar consultas SQL sobre estos datos.
+    - **Subir un archivo CSV propio** con los datos que quieras consultar. Solo se permite archivos CSV y podrás realizar consultas SQL sobre esos datos.
 
-# Configurar la semilla
-Faker.seed(semilla)
+    Las opciones que puedes elegir son:
+    1. Generar datos falsos.
+    2. Subir un archivo CSV propio.
 
-# Número de clientes y empresas a generar
-n_clientes = st.number_input("¿Cuántos clientes quieres generar?", 10, 1000, step=10)
-n_empresas = st.number_input("¿Cuántas empresas quieres generar?", 1, 100, step=1)
+    Para empezar, elige una de las opciones a continuación:
+""")
 
-# Función para generar la tabla de "Clientes y Consumo"
-def generar_tabla_clientes_consumo(n_clientes, empresas):
-    data = {
-        "cliente_id": [i + 1 for i in range(n_clientes)],  # IDs consecutivos de clientes
-        "empresa_id": [fake.random_int(min=1, max=n_empresas) for _ in range(n_clientes)],  # Empresas aleatorias entre las disponibles
-        "consumo_mes": [fake.random_number(digits=2) for _ in range(n_clientes)],
-        "facturacion_mes": [fake.random_number(digits=5) for _ in range(n_clientes)],
-        "coste_mes": [fake.random_number(digits=3) for _ in range(n_clientes)],
-    }
-    return pd.DataFrame(data)
+# Opción para elegir entre generar datos falsos o subir un archivo
+opcion = st.radio("¿Qué deseas hacer?", ("Generar datos falsos", "Subir archivo CSV"))
 
-# Función para generar la tabla de "Clientes Personales"
-def generar_tabla_clientes_personales(n_clientes):
-    data = {
-        "cliente_id": [i + 1 for i in range(n_clientes)],  # IDs consecutivos de clientes
-        "nombre": [fake.first_name() for _ in range(n_clientes)],
-        "apellido": [fake.last_name() for _ in range(n_clientes)],
-        "fecha_nacimiento": [fake.date_of_birth().strftime('%Y-%m-%d') for _ in range(n_clientes)],
-        "ciudad": [fake.city() for _ in range(n_clientes)],
-    }
-    return pd.DataFrame(data)
+if opcion == "Generar datos falsos":
+    # Selección de la semilla para generar datos replicables
+    semilla = st.number_input("Elige una semilla para replicar los datos:", min_value=1, max_value=10000, value=1234)
 
-# Función para generar la tabla de "Empresas y Tarifas"
-def generar_tabla_empresas_tarifas(n_empresas):
-    data = {
-        "empresa_id": [i + 1 for i in range(n_empresas)],  # IDs consecutivos de empresas
-        "empresa": [fake.company() for _ in range(n_empresas)],
-        "tarifa": [fake.random_number(digits=2) for _ in range(n_empresas)],  # Tarifa como valor numérico
-        "trimestre": [fake.random_element(elements=('Q1', 'Q2', 'Q3', 'Q4')) for _ in range(n_empresas)],
-    }
-    return pd.DataFrame(data)
+    # Configurar la semilla
+    Faker.seed(semilla)
 
-# Generar las tablas
-df_clientes_personales = generar_tabla_clientes_personales(n_clientes)
-df_empresas_tarifas = generar_tabla_empresas_tarifas(n_empresas)
-df_clientes_consumo = generar_tabla_clientes_consumo(n_clientes, df_empresas_tarifas)
+    # Número de clientes y empresas a generar
+    n_clientes = st.number_input("¿Cuántos clientes quieres generar?", 10, 1000, step=10)
+    n_empresas = st.number_input("¿Cuántas empresas quieres generar?", 1, 100, step=1)
 
-# Mostrar los datos generados
-st.subheader("Datos generados:")
-st.write("### Tabla: Clientes Personales")
-st.dataframe(df_clientes_personales)
-st.write("### Tabla: Empresas y Tarifas")
-st.dataframe(df_empresas_tarifas)
-st.write("### Tabla: Clientes y Consumo")
-st.dataframe(df_clientes_consumo)
+    # Función para generar la tabla de "Clientes y Consumo"
+    def generar_tabla_clientes_consumo(n_clientes, empresas):
+        data = {
+            "cliente_id": [i + 1 for i in range(n_clientes)],  # IDs consecutivos de clientes
+            "empresa_id": [fake.random_int(min=1, max=n_empresas) for _ in range(n_clientes)],  # Empresas aleatorias entre las disponibles
+            "consumo_mes": [fake.random_number(digits=2) for _ in range(n_clientes)],
+            "facturacion_mes": [fake.random_number(digits=5) for _ in range(n_clientes)],
+            "coste_mes": [fake.random_number(digits=3) for _ in range(n_clientes)],
+        }
+        return pd.DataFrame(data)
 
-# Crear conexión DuckDB en memoria
-con = duckdb.connect(database=':memory:')
-con.register('clientes_personales', df_clientes_personales)
-con.register('empresas_tarifas', df_empresas_tarifas)
-con.register('clientes_consumo', df_clientes_consumo)
+    # Función para generar la tabla de "Clientes Personales"
+    def generar_tabla_clientes_personales(n_clientes):
+        data = {
+            "cliente_id": [i + 1 for i in range(n_clientes)],  # IDs consecutivos de clientes
+            "nombre": [fake.first_name() for _ in range(n_clientes)],
+            "apellido": [fake.last_name() for _ in range(n_clientes)],
+            "fecha_nacimiento": [fake.date_of_birth().strftime('%Y-%m-%d') for _ in range(n_clientes)],
+            "ciudad": [fake.city() for _ in range(n_clientes)],
+        }
+        return pd.DataFrame(data)
+
+    # Función para generar la tabla de "Empresas y Tarifas"
+    def generar_tabla_empresas_tarifas(n_empresas):
+        data = {
+            "empresa_id": [i + 1 for i in range(n_empresas)],  # IDs consecutivos de empresas
+            "empresa": [fake.company() for _ in range(n_empresas)],
+            "tarifa": [fake.random_number(digits=2) for _ in range(n_empresas)],  # Tarifa como valor numérico
+            "trimestre": [fake.random_element(elements=('Q1', 'Q2', 'Q3', 'Q4')) for _ in range(n_empresas)],
+        }
+        return pd.DataFrame(data)
+
+    # Generar las tablas
+    df_clientes_personales = generar_tabla_clientes_personales(n_clientes)
+    df_empresas_tarifas = generar_tabla_empresas_tarifas(n_empresas)
+    df_clientes_consumo = generar_tabla_clientes_consumo(n_clientes, df_empresas_tarifas)
+
+    # Mostrar los datos generados
+    st.subheader("Datos generados:")
+    st.write("### Tabla: Clientes Personales")
+    st.dataframe(df_clientes_personales)
+    st.write("### Tabla: Empresas y Tarifas")
+    st.dataframe(df_empresas_tarifas)
+    st.write("### Tabla: Clientes y Consumo")
+    st.dataframe(df_clientes_consumo)
+
+    # Crear conexión DuckDB en memoria
+    con = duckdb.connect(database=':memory:')
+    con.register('clientes_personales', df_clientes_personales)
+    con.register('empresas_tarifas', df_empresas_tarifas)
+    con.register('clientes_consumo', df_clientes_consumo)
+
+elif opcion == "Subir archivo CSV":
+    # Opción de subir un archivo CSV
+    uploaded_file = st.file_uploader("Sube tu archivo CSV", type="csv")
+
+    if uploaded_file is not None:
+        # Cargar el CSV
+        df_subido = pd.read_csv(uploaded_file)
+
+        # Mostrar una muestra de los datos
+        st.write("### Muestra de los datos subidos:")
+        st.dataframe(df_subido.head())  # Mostrar solo las primeras filas del CSV
+
+        # Crear una base de datos temporal de DuckDB
+        con = duckdb.connect(database=':memory:')
+        con.register('datos_subidos', df_subido)
 
 # Botón para descargar los datos generados
 csv_buffer = io.StringIO()
