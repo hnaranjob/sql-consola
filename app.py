@@ -25,19 +25,19 @@ st.write("""
     Las principales funcionalidades de esta web son:
     
     - **Generar datos falsos** sobre clientes, empresas y consumos eléctricos. Puedes elegir el número de clientes y empresas y realizar consultas SQL sobre estos datos.
-    - **Subir un archivo CSV, Excel (XLSX) o Excel con Macros (XLSM)** con los datos que quieras consultar. Podrás realizar consultas SQL sobre esos datos.
+    - **Subir un archivo CSV propio** con los datos que quieras consultar. Solo se permite archivos CSV y podrás realizar consultas SQL sobre esos datos.
 
     **Lo más importante de esta web es que te proporciona una herramienta para empezar a practicar SQL de manera sencilla y accesible**, sin necesidad de instalar nada en tu ordenador. La idea es que puedas realizar consultas SQL sobre datos, aprender y experimentar.
 
     Las opciones que puedes elegir son:
     1. Generar datos falsos.
-    2. Subir un archivo (CSV, Excel o Excel con Macros).
+    2. Subir un archivo CSV propio.
 
     Para empezar, elige una de las opciones a continuación:
 """)
 
 # Opción para elegir entre generar datos falsos o subir un archivo
-opcion = st.radio("¿Qué deseas hacer?", ("Generar datos falsos", "Subir archivo (CSV, Excel o XLSM)"))
+opcion = st.radio("¿Qué deseas hacer?", ("Generar datos falsos", "Subir archivo CSV"))
 
 if opcion == "Generar datos falsos":
     # Selección de la semilla para generar datos replicables
@@ -102,21 +102,49 @@ if opcion == "Generar datos falsos":
     con.register('empresas_tarifas', df_empresas_tarifas)
     con.register('clientes_consumo', df_clientes_consumo)
 
-elif opcion == "Subir archivo (CSV, Excel o XLSM)":
-    # Opción de subir un archivo (CSV, Excel o Excel con macros)
-    uploaded_file = st.file_uploader("Sube tu archivo (CSV, Excel o XLSM)", type=["csv", "xlsx", "xlsm"])
+    # Botón para descargar los datos generados
+    csv_buffer = io.StringIO()
+    df_clientes_personales.to_csv(csv_buffer, index=False)
+    csv_data = csv_buffer.getvalue()
+    st.download_button(
+        label="Descargar Tabla Clientes Personales como CSV",
+        data=csv_data,
+        file_name="clientes_personales.csv",
+        mime="text/csv"
+    )
+    
+    csv_buffer = io.StringIO()
+    df_empresas_tarifas.to_csv(csv_buffer, index=False)
+    csv_data = csv_buffer.getvalue()
+    st.download_button(
+        label="Descargar Tabla Empresas y Tarifas como CSV",
+        data=csv_data,
+        file_name="empresas_tarifas.csv",
+        mime="text/csv"
+    )
+    
+    csv_buffer = io.StringIO()
+    df_clientes_consumo.to_csv(csv_buffer, index=False)
+    csv_data = csv_buffer.getvalue()
+    st.download_button(
+        label="Descargar Tabla Clientes y Consumo como CSV",
+        data=csv_data,
+        file_name="clientes_consumo.csv",
+        mime="text/csv"
+    )
+
+elif opcion == "Subir archivo CSV":
+    # Opción de subir un archivo CSV
+    uploaded_file = st.file_uploader("Sube tu archivo CSV", type="csv")
 
     if uploaded_file is not None:
         try:
-            # Intentamos leer el archivo en función de su extensión
-            if uploaded_file.name.endswith(".csv"):
-                df_subido = pd.read_csv(uploaded_file)  # Leer CSV
-            else:
-                df_subido = pd.read_excel(uploaded_file, engine='openpyxl')  # Leer Excel o XLSM
+            # Cargar el CSV
+            df_subido = pd.read_csv(uploaded_file)
 
             # Verificar si el DataFrame se cargó correctamente
             st.write("### Muestra de los datos subidos:")
-            st.dataframe(df_subido.head())  # Mostrar solo las primeras filas del archivo
+            st.dataframe(df_subido.head())  # Mostrar solo las primeras filas del CSV
 
             # Crear una base de datos temporal de DuckDB
             con = duckdb.connect(database=':memory:')
@@ -128,37 +156,6 @@ elif opcion == "Subir archivo (CSV, Excel o XLSM)":
             # Imprimir más detalles del error para el debugging
             st.write("Detalles del error:")
             st.write(e)
-
-# Botón para descargar los datos generados
-csv_buffer = io.StringIO()
-df_clientes_personales.to_csv(csv_buffer, index=False)
-csv_data = csv_buffer.getvalue()
-st.download_button(
-    label="Descargar Tabla Clientes Personales como CSV",
-    data=csv_data,
-    file_name="clientes_personales.csv",
-    mime="text/csv"
-)
-
-csv_buffer = io.StringIO()
-df_empresas_tarifas.to_csv(csv_buffer, index=False)
-csv_data = csv_buffer.getvalue()
-st.download_button(
-    label="Descargar Tabla Empresas y Tarifas como CSV",
-    data=csv_data,
-    file_name="empresas_tarifas.csv",
-    mime="text/csv"
-)
-
-csv_buffer = io.StringIO()
-df_clientes_consumo.to_csv(csv_buffer, index=False)
-csv_data = csv_buffer.getvalue()
-st.download_button(
-    label="Descargar Tabla Clientes y Consumo como CSV",
-    data=csv_data,
-    file_name="clientes_consumo.csv",
-    mime="text/csv"
-)
 
 # Entrada de consulta SQL
 query = st.text_area("Escribe tu consulta SQL (usando JOIN):", 
