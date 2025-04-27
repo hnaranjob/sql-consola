@@ -20,47 +20,46 @@ semilla = st.number_input("Elige una semilla para replicar los datos:", min_valu
 # Configurar la semilla
 Faker.seed(semilla)
 
-# Número de filas a generar
-n_rows = st.number_input("¿Cuántas filas quieres generar?", 10, 1000, step=10)
+# Número de clientes y empresas a generar
+n_clientes = st.number_input("¿Cuántos clientes quieres generar?", 10, 1000, step=10)
+n_empresas = st.number_input("¿Cuántas empresas quieres generar?", 1, 100, step=1)
 
 # Función para generar la tabla de "Clientes y Consumo"
-def generar_tabla_clientes_consumo(n, clientes, empresas):
+def generar_tabla_clientes_consumo(n_clientes, empresas):
     data = {
-        "cliente_id": [fake.random_element(elements=clientes["cliente_id"].values) for _ in range(n)],  # Asignar un cliente aleatorio de la tabla de clientes
-        "empresa": [fake.random_element(elements=empresas["empresa"].values) for _ in range(n)],  # Empresas repetidas
-        "consumo_mes": [fake.random_number(digits=2) for _ in range(n)],
-        "facturacion_mes": [fake.random_number(digits=5) for _ in range(n)],
-        "coste_mes": [fake.random_number(digits=3) for _ in range(n)],
+        "cliente_id": [i + 1 for i in range(n_clientes)],  # IDs consecutivos de clientes
+        "empresa_id": [fake.random_int(min=1, max=n_empresas) for _ in range(n_clientes)],  # Empresas aleatorias entre las disponibles
+        "consumo_mes": [fake.random_number(digits=2) for _ in range(n_clientes)],
+        "facturacion_mes": [fake.random_number(digits=5) for _ in range(n_clientes)],
+        "coste_mes": [fake.random_number(digits=3) for _ in range(n_clientes)],
     }
     return pd.DataFrame(data)
 
 # Función para generar la tabla de "Clientes Personales"
-def generar_tabla_clientes_personales(n):
+def generar_tabla_clientes_personales(n_clientes):
     data = {
-        "cliente_id": [fake.uuid4() for _ in range(n)],  # Generar un ID único para cada cliente
-        "cliente": [fake.name() for _ in range(n)],
-        "nombre": [fake.first_name() for _ in range(n)],
-        "apellido": [fake.last_name() for _ in range(n)],
-        "fecha_nacimiento": [fake.date_of_birth().strftime('%Y-%m-%d') for _ in range(n)],
-        "ciudad": [fake.city() for _ in range(n)],
+        "cliente_id": [i + 1 for i in range(n_clientes)],  # IDs consecutivos de clientes
+        "nombre": [fake.first_name() for _ in range(n_clientes)],
+        "apellido": [fake.last_name() for _ in range(n_clientes)],
+        "fecha_nacimiento": [fake.date_of_birth().strftime('%Y-%m-%d') for _ in range(n_clientes)],
+        "ciudad": [fake.city() for _ in range(n_clientes)],
     }
     return pd.DataFrame(data)
 
 # Función para generar la tabla de "Empresas y Tarifas"
-def generar_tabla_empresas_tarifas(n):
+def generar_tabla_empresas_tarifas(n_empresas):
     data = {
-        "empresa": [fake.company() for _ in range(n)],
-        "tarifa": [fake.random_element(elements=('Básica', 'Intermedia', 'Premium')) for _ in range(n)],
-        "trimestre": [fake.random_element(elements=('Q1', 'Q2', 'Q3', 'Q4')) for _ in range(n)],
+        "empresa_id": [i + 1 for i in range(n_empresas)],  # IDs consecutivos de empresas
+        "empresa": [fake.company() for _ in range(n_empresas)],
+        "tarifa": [fake.random_number(digits=2) for _ in range(n_empresas)],  # Tarifa como valor numérico
+        "trimestre": [fake.random_element(elements=('Q1', 'Q2', 'Q3', 'Q4')) for _ in range(n_empresas)],
     }
     return pd.DataFrame(data)
 
 # Generar las tablas
-df_clientes_personales = generar_tabla_clientes_personales(n_rows)
-df_empresas_tarifas = generar_tabla_empresas_tarifas(n_rows)
-
-# Los clientes de la tabla 1 deben ser los mismos que los de la tabla 2
-df_clientes_consumo = generar_tabla_clientes_consumo(n_rows, df_clientes_personales, df_empresas_tarifas)
+df_clientes_personales = generar_tabla_clientes_personales(n_clientes)
+df_empresas_tarifas = generar_tabla_empresas_tarifas(n_empresas)
+df_clientes_consumo = generar_tabla_clientes_consumo(n_clientes, df_empresas_tarifas)
 
 # Mostrar los datos generados
 st.subheader("Datos generados:")
@@ -109,10 +108,10 @@ st.download_button(
 )
 
 # Entrada de consulta SQL
-query = st.text_area("Escribe tu consulta SQL (usando JOIN):", 
-                     "SELECT c.cliente, c.nombre, e.tarifa, c.consumo_mes FROM clientes_consumo c "
-                     "JOIN clientes_personales c2 ON c.cliente_id = c2.cliente_id "
-                     "JOIN empresas_tarifas e ON c.empresa = e.empresa LIMIT 10")
+query = st.text_area("Escribe tu consulta SQL. Ejemplo:", 
+                     "SELECT cliente_id, nombre, fecha_nacimiento"
+                     "FROM clientes_personales"
+                     "LIMIT 10")
 
 if st.button("Ejecutar consulta"):
     try:
