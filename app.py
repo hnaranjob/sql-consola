@@ -17,12 +17,17 @@ if 'resultados_guardados' not in st.session_state:
 # Título
 st.title("Mini Consola SQL en Streamlit")
 
-# Descripción inicial
+# Descripción inicial actualizada
 st.write("""
-    Bienvenido a la **Mini Consola SQL**. Con esta herramienta puedes:
+    Bienvenido a la **Mini Consola SQL**. Esta herramienta está diseñada como una **introducción práctica a SQL**. 
+    Su objetivo es ayudarte a empezar a practicar consultas SQL de forma sencilla, utilizando datos falsos generados automáticamente o datos propios cargados por el usuario.
+
+    Las principales funcionalidades de esta web son:
     
     - **Generar datos falsos** sobre clientes, empresas y consumos eléctricos. Puedes elegir el número de clientes y empresas y realizar consultas SQL sobre estos datos.
     - **Subir un archivo CSV propio** con los datos que quieras consultar. Solo se permite archivos CSV y podrás realizar consultas SQL sobre esos datos.
+
+    **Lo más importante de esta web es que te proporciona una herramienta para empezar a practicar SQL de manera sencilla y accesible**, sin necesidad de instalar nada en tu ordenador. La idea es que puedas realizar consultas SQL sobre datos, aprender y experimentar.
 
     Las opciones que puedes elegir son:
     1. Generar datos falsos.
