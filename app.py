@@ -158,8 +158,8 @@ elif opcion == "Subir archivo CSV":
             st.write(e)
 
 # Entrada de consulta SQL
-query = st.text_area("Escribe tu consulta SQL (usando JOIN):", 
-                     "SELECT c.cliente_id, c.nombre, e.empresa, e.tarifa, c.consumo_mes "
+query = st.text_area("Escribe tu consulta SQL. Ejemplo de consulta:", 
+                     "SELECT c.cliente_id, c2.nombre, e.empresa, e.tarifa, c.consumo_mes "
                      "FROM clientes_consumo c "
                      "JOIN clientes_personales c2 ON c.cliente_id = c2.cliente_id "
                      "JOIN empresas_tarifas e ON c.empresa_id = e.empresa_id "
