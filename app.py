@@ -7,9 +7,12 @@ import io
 # Configuración
 fake = Faker()
 
-# Lista para guardar consultas y resultados
-consultas_guardadas = []
-resultados_guardados = []
+# Lista para guardar las consultas (en memoria, sin base de datos)
+if 'consultas_guardadas' not in st.session_state:
+    st.session_state.consultas_guardadas = []
+
+if 'resultados_guardados' not in st.session_state:
+    st.session_state.resultados_guardados = []
 
 # Título
 st.title("Mini Consola SQL en Streamlit")
@@ -118,9 +121,9 @@ if st.button("Ejecutar consulta"):
         # Ejecutar consulta SQL
         result = con.execute(query).df()
 
-        # Guardar consulta y resultado
-        consultas_guardadas.append(query)
-        resultados_guardados.append(result)
+        # Guardar consulta y resultado en el listado
+        st.session_state.consultas_guardadas.append(query)
+        st.session_state.resultados_guardados.append(result)
 
         # Mostrar resultado
         st.success("Consulta ejecutada correctamente.")
@@ -131,13 +134,17 @@ if st.button("Ejecutar consulta"):
 
 # Mostrar consultas guardadas
 st.subheader("Consultas anteriores:")
-for idx, (consulta, resultado) in enumerate(zip(consultas_guardadas, resultados_guardados)):
+for idx, consulta in enumerate(st.session_state.consultas_guardadas):
     st.write(f"**Consulta {idx + 1}:** {consulta}")
+    
+    # Recuperar el resultado de la consulta
+    resultado = st.session_state.resultados_guardados[idx]
     st.dataframe(resultado)
 
     # Botón para borrar una consulta
     if st.button(f"Borrar consulta {idx + 1}"):
-        consultas_guardadas.pop(idx)
-        resultados_guardados.pop(idx)
+        # Eliminar la consulta y su resultado
+        st.session_state.consultas_guardadas.pop(idx)
+        st.session_state.resultados_guardados.pop(idx)
         st.success(f"Consulta {idx + 1} borrada.")
         break  # Interrumpir el ciclo para evitar errores de índice
