@@ -108,9 +108,9 @@ st.download_button(
 )
 
 # Entrada de consulta SQL
-query = st.text_area("Escribe tu consulta SQL. Ejemplo:", 
-                     "SELECT cliente_id, nombre, fecha_nacimiento"
-                     "FROM clientes_personales"
+query = st.text_area("Escribe tu consulta SQL. Ejemplo: ", 
+                     "SELECT cliente_id, nombre, fecha_nacimiento "
+                     "FROM clientes_personales "
                      "LIMIT 10")
 
 if st.button("Ejecutar consulta"):
