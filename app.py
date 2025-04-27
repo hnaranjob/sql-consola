@@ -102,16 +102,24 @@ elif opcion == "Subir archivo CSV":
     uploaded_file = st.file_uploader("Sube tu archivo CSV", type="csv")
 
     if uploaded_file is not None:
-        # Cargar el CSV
-        df_subido = pd.read_csv(uploaded_file)
+        try:
+            # Cargar el CSV
+            df_subido = pd.read_csv(uploaded_file)
 
-        # Mostrar una muestra de los datos
-        st.write("### Muestra de los datos subidos:")
-        st.dataframe(df_subido.head())  # Mostrar solo las primeras filas del CSV
+            # Verificar si el DataFrame se cargó correctamente
+            st.write("### Muestra de los datos subidos:")
+            st.dataframe(df_subido.head())  # Mostrar solo las primeras filas del CSV
 
-        # Crear una base de datos temporal de DuckDB
-        con = duckdb.connect(database=':memory:')
-        con.register('datos_subidos', df_subido)
+            # Crear una base de datos temporal de DuckDB
+            con = duckdb.connect(database=':memory:')
+            con.register('datos_subidos', df_subido)
+
+        except Exception as e:
+            st.error(f"Hubo un error al cargar el archivo: {e}")
+            
+            # Imprimir más detalles del error para el debugging
+            st.write("Detalles del error:")
+            st.write(e)
 
 # Botón para descargar los datos generados
 csv_buffer = io.StringIO()
@@ -145,9 +153,11 @@ st.download_button(
 )
 
 # Entrada de consulta SQL
-query = st.text_area("Escribe tu consulta SQL. Ejemplo: ", 
-                     "SELECT cliente_id, nombre, fecha_nacimiento "
-                     "FROM clientes_personales "
+query = st.text_area("Escribe tu consulta SQL (usando JOIN):", 
+                     "SELECT c.cliente_id, c.nombre, e.empresa, e.tarifa, c.consumo_mes "
+                     "FROM clientes_consumo c "
+                     "JOIN clientes_personales c2 ON c.cliente_id = c2.cliente_id "
+                     "JOIN empresas_tarifas e ON c.empresa_id = e.empresa_id "
                      "LIMIT 10")
 
 if st.button("Ejecutar consulta"):
